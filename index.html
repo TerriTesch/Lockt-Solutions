@@ -1,0 +1,107 @@
+index.html:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CapLockt</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;500&family=Montserrat:wght@600&display=swap" r>    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #fff0f5;
+            color: #333;
+            margin: 0;
+        }
+        header {
+            background-color: #880e4f;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo img {
+            height: 60px;
+        }
+        nav ul {
+  list-style: none;
+            display: flex;
+            gap: 20px;
+            margin: 0;
+            padding: 0;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .hero {
+            text-align: center;
+            margin-top: 100px;
+            padding: 0 30px;
+        }
+        .hero h1 {
+            font-size: 3em;
+            color: #880e4f;
+            font-family: 'Montserrat', sans-serif;
+            margin-bottom: 15px;
+        }
+        .hero h2 {
+            font-size: 1.8em;
+            color: #880e4f;
+    font-family: 'Montserrat', sans-serif;
+            margin-bottom: 30px;
+        }
+        .hero img {
+            width: 300px;
+            max-width: 80%;
+            margin: 30px 0;
+            border: 5px solid #880e4f;
+            border-radius: 12px;
+        }
+        .hero p.description {
+            font-size: 1.1em;
+            color: #444;
+            font-weight: 300;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6em;
+        }
+        footer {
+            background-color: #880e4f;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: 60px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="CapLockt Logo">
+        </div>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/login">Login/Signup</a></li>
+                <li><a href="/install">Install CapLockt</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Introducing: CapLockt</h1>
+        <h2>No Keys. No Codes. Just You.</h2>
+        <img src="{{ url_for('static', filename='images/caplockt-image.png') }}" alt="CapLockt Product">
+        <p class="description">
+            Designed for both home and business use, CapLockt combines facial recognition and custom passphrase authent>            to create a more secure and user-friendly access control solution. Our system integrates seamlessly with st>            deadbolt locks, meaning there’s no need for a full replacement—just an easy upgrade.
+        </p>
+    </section>
+    <footer>
+        <p>Lockt Solutions Co.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,216 @@
+profile.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile - {{ user.username }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffe6f2;
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #880e4f;
+            padding: 10px 0;
+            color: white;
+            margin-bottom: 20px;
+        }
+        header a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 0 15px;
+   }
+        .container {
+            width: 90%;
+            max-width: 700px;
+            background: #f8bbd0;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 40px auto;
+        }
+        h1, h2, h3 {
+            color: #880e4f;
+        }
+        input, button, audio {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: 16px;
+            border: 1px solid #880e4f;
+        }
+        button {
+            background-color: #880e4f;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+   button:hover {
+            background-color: #e91e63;
+        }
+        .sub-user {
+            background: #ffe6f2;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .photo-preview img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 2px solid #880e4f;
+            margin: 5px;
+        }
+        .delete-photo-btn {
+            background-color: #d32f2f;
+            margin-top: 5px;
+        }
+        .logout {
+            display: block;
+            color: #880e4f;
+            text-decoration: none;
+ font-weight: bold;
+        }
+        .notification {
+            color: #880e4f;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="{{ url_for('home') }}">Home</a>
+    <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+</header>
+
+<div class="container">
+    <h1>Welcome, {{ user.username }}</h1>
+
+    <hr>
+    <h2>Device Serial Number</h2>
+    <form method="POST">
+        <input type="text" name="serial_number" value="{{ user.get('serial_number', '') }}" required>
+        <button type="submit">Update Serial</button>
+    </form>
+
+    <hr>
+    <h2>Manage Sub-Users</h2>
+    <form method="POST">
+        <input type="text" name="sub_user_name" placeholder="Enter Sub-User Name" required>
+        <button type="submit">Add Sub-User</button>
+    </form>
+
+    {% if user.sub_users %}
+        <h3>Your Sub-Users:</h3>
+        {% for sub_user in user.sub_users %}
+            <div class="sub-user">
+                <strong>{{ sub_user.name }}</strong>
+
+                <!-- Upload Photo -->
+                <form action="{{ url_for('upload_photo', username=user.username, sub_user_name=sub_user.name) }}" metho>                    <input type="file" name="photo" required>
+                    <button type="submit">Upload Photo</button>
+                </form>
+
+                {% if sub_user.photos %}
+                    <div class="photo-preview">
+                        {% for photo in sub_user.photos %}
+                            <div>
+                                <img src="{{ url_for('static', filename='uploads/' + photo) }}" alt="User Photo">
+                                <form action="{{ url_for('delete_photo', username=user.username, sub_user_name=sub_user>
+                                  <button class="delete-photo-btn" type="submit">Delete</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Voice Recording and Upload -->
+                <h4>Voice Sample</h4>
+                {% if sub_user.voice_sample %}
+                    <audio controls>
+                        <source src="{{ url_for('static', filename='voice/' + sub_user.voice_sample) }}" type="audio/mp>                    </audio>
+                    <form action="{{ url_for('delete_voice', username=user.username, sub_user_name=sub_user.name) }}" m>                        <button type="submit" class="delete-photo-btn">Delete Voice Sample</button>
+                    </form>
+                {% else %}
+                    <p>❌ No voice sample</p>
+                {% endif %}
+                <button onclick="startRecording('{{ user.username }}', '{{ sub_user.name }}')">🎙️ Record Voice</button>
+                <button id="stopBtn_{{ sub_user.name }}" style="display:none;" onclick="stopRecording()">⏹️ Stop</button>               <p id="recordStatus_{{ sub_user.name }}"></p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No sub-users yet.</p>
+ {% endif %}
+</div>
+
+<script>
+let mediaRecorder;
+let audioChunks = [];
+let activeSubUser = '';
+
+function startRecording(username, subUserName) {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            activeSubUser = subUserName;
+            const stopBtn = document.getElementById(`stopBtn_${subUserName}`);
+            const status = document.getElementById(`recordStatus_${subUserName}`);
+
+            stopBtn.style.display = "inline-block";
+            status.textContent = "Recording...";
+
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = () => {
+ const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                const formData = new FormData();
+                formData.append('voice_sample', audioBlob, `${username}_${subUserName}.mp3`);
+
+                fetch(`/upload_voice/${username}/${subUserName}`, {
+                    method: 'POST',
+                    body: formData
+                }).then(res => {
+                    if (res.ok) {
+                        status.textContent = "Voice sample uploaded!";
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        status.textContent = "Upload failed.";
+                    }
+                }).catch(err => {
+                    status.textContent = "Upload failed.";
+                });
+
+                stopBtn.style.display = "none";
+            };
+
+            mediaRecorder.start();
+        })
+        .catch(err => {
+            const status = document.getElementById(`recordStatus_${subUserName}`);
+            status.textContent = "Microphone access denied.";
+  });
+}
+
+function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+    }
+}
+</script>
+</body>
+</html>

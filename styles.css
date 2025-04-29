@@ -1,0 +1,244 @@
+styles.css
+
+/* Reset and Base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #fce4ec; /* Light pink background */
+    color: #333;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #f8bbd0; /* Light pink header */
+}
+header .logo h1 {
+    font-size: 2rem;
+}
+
+.hero h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #880e4f;
+}
+
+.hero img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #880e4f;
+    color: #fff;
+}
+
+/* Navigation styles */
+nav ul {
+ list-style: none;
+    display: flex;
+    gap: 20px;
+}
+
+nav a {
+    font-size: 1.2rem;
+    color: #880e4f; /* Dark pink color for links */
+    padding: 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+nav a:hover {
+    background-color: #e91e63; /* Darker pink on hover */
+}
+
+/* Hero Section styles */
+.hero {
+    text-align: center;
+    padding: 50px;
+}
+
+/* Login and Signup Form styles */
+form {
+ display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f8bbd0; /* Light pink form background */
+    padding: 20px;
+    border-radius: 10px;
+    width: 300px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin: auto;
+}
+
+input[type="text"], input[type="password"], input[type="email"] {
+    padding: 10px;
+    margin: 10px 0;
+    width: 100%;
+    border: 1px solid #880e4f; /* Dark pink border */
+    border-radius: 5px;
+    font-size: 1rem;
+    background-color: #fff;
+}
+
+input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus {
+    border-color: #e91e63; /* Darker pink border when focused */
+    outline: none;
+}
+button[type="submit"] {
+    padding: 10px;
+    background-color: #880e4f; /* Dark pink button */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button[type="submit"]:hover {
+    background-color: #e91e63; /* Darker pink on hover */
+}
+
+p {
+    color: #880e4f;
+}
+
+a {
+    color: #880e4f;
+}
+
+a:hover {
+    color: #e91e63; /* Darker pink on hover */
+}
+/* Style for new user link */
+form p {
+    font-size: 1rem;
+    margin-top: 10px;
+}
+
+/***** Profile Page Specific Styles *****/
+
+/* Container for the profile page */
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Headings on the profile page */
+h1, h2 {
+    color: #880e4f;
+}
+
+/* Profile section */
+.profile-section {
+    text-align: center;
+ padding: 20px;
+    background: #f8bbd0;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+/* Recognition phrase input */
+.phrase-section {
+    background: #fce4ec;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.phrase-section input {
+    width: 70%;
+    padding: 10px;
+    border: 1px solid #880e4f;
+    border-radius: 5px;
+}
+
+.phrase-section button {
+    padding: 10px;
+    background-color: #880e4f;
+    color: white;
+    border: none;
+   border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.phrase-section button:hover {
+    background-color: #e91e63;
+}
+
+/* Sub-user section */
+.sub-user-container {
+    background: #ffe6f2;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.sub-user {
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.sub-user h3 {
+    color: #880e4f;
+}
+
+/* Photo Upload */
+.photo-upload {
+    background: #f8bbd0;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.photo-upload input {
+    margin: 10px 0;
+}
+
+.photo-preview img {
+    width: 100px;
+    height: 100px;
+    border-radius: 10px;
+    margin: 5px;
+    object-fit: cover;
+    border: 2px solid #ff66b2;
+}
+/* Logout button style */
+.logout-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #880e4f; /* Dark pink */
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    margin-top: 20px;
+}
+
+.logout-btn:hover {
+    background-color: #e91e63; /* Darker pink on hover */
+}

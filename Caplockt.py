@@ -1,5 +1,5 @@
-import os
 import cv2
+import os
 import requests
 import numpy as np
 from PIL import Image
@@ -18,52 +18,34 @@ from sklearn.decomposition import PCA
 import RPi.GPIO as GPIO
 import pygame
 
-
 # === PIR and GPIO Setup ===
 PIR_PIN = 17
-MOTOR_PIN = 23       # Motor relay control (lock/unlock)
-
-# === Motor & Locking Setup ===
-REED_SWITCH_PIN = 26    # GPIO pin for reed switch (input)
-MOTOR_IN1 = 27          # Motor direction pin 1
-MOTOR_IN2 = 22          # Motor direction pin 2
-
-# === LED Setup ===
+REED_SWITCH_PIN = 26
+MOTOR_IN1 = 27
+MOTOR_IN2 = 22
 RED_LED_PIN = 5
 ORANGE_LED_PIN = 6
 GREEN_LED_PIN = 13
 YELLOW_LED_PIN = 19
 
-# === Setup GPIO ===
+# === GPIO Setup ===
 GPIO.setmode(GPIO.BCM)
-
-# Reed Switch Setup
 GPIO.setup(REED_SWITCH_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-# Main Lock Motor Setup
 GPIO.setup(MOTOR_IN1, GPIO.OUT)
 GPIO.setup(MOTOR_IN2, GPIO.OUT)
-
-# LEDs Setup
 GPIO.setup(RED_LED_PIN, GPIO.OUT)
 GPIO.setup(ORANGE_LED_PIN, GPIO.OUT)
 GPIO.setup(GREEN_LED_PIN, GPIO.OUT)
 GPIO.setup(YELLOW_LED_PIN, GPIO.OUT)
-
-# PIR Sensor Setup
 GPIO.setup(PIR_PIN, GPIO.IN)
-
-# Ensure LEDs and motor are initially off
 GPIO.output(GREEN_LED_PIN, GPIO.LOW)
 GPIO.output(RED_LED_PIN, GPIO.LOW)
-GPIO.output(MOTOR_IN1, GPIO.LOW) 
+GPIO.output(MOTOR_IN1, GPIO.LOW)
 GPIO.output(MOTOR_IN2, GPIO.LOW)
 
 pygame.mixer.init()
-                
 
-# === Device and DB Info ===
-device_serial_number = "LKT005"
+device_serial_number = "LKT002"
 mongo_uri = "mongodb+srv://LocktAdmin:L0cktForever@locktcluster.dfui7.mongodb.net/?retryWrites=true&w=majority&appName=LocktCluster"
 flask_base_url = "https://locktsolutions.com"
 
@@ -77,7 +59,6 @@ voice_profiles = {}
 eigenface_projections = []
 eigenface_names = []
 pca_model = None
-
 recognizer = sr.Recognizer()
 
 def play_sound(filename):
@@ -87,8 +68,7 @@ def play_sound(filename):
         while pygame.mixer.music.get_busy():
             sleep(0.1)
     except Exception as e:
-            print(f"Error playing sound {filename}: {e}")
-            
+        print(f"Error playing sound {filename}: {e}")
 
 def extract_mfcc(file_path):
     try:
@@ -115,6 +95,46 @@ def project_to_eigenfaces(pca, face_image):
     face_vector = face_image.flatten().reshape(1, -1)
     return pca.transform(face_vector)
 
+def lock_door():
+    print("Locking door...")
+    GPIO.output(MOTOR_IN1, GPIO.LOW)
+    GPIO.output(MOTOR_IN2, GPIO.HIGH)
+    sleep(2)
+    GPIO.output(MOTOR_IN1, GPIO.LOW)
+    GPIO.output(MOTOR_IN2, GPIO.LOW)
+    print("Door locked.")
+
+def monitor_reed_for_autolock():
+    print("Monitoring door for auto-lock...")
+
+    door_opened = False  # Track if door has been opened after unlock
+
+    while True:
+        if not door_opened:
+            # Wait until the door is opened at least once
+            if GPIO.input(REED_SWITCH_PIN) != GPIO.LOW:
+                print("Door opened after unlock.")
+                door_opened = True
+            sleep(0.2)
+            continue
+
+        # Now wait for it to be closed
+        if GPIO.input(REED_SWITCH_PIN) == GPIO.LOW:
+            print("Door closed. Starting 5-second auto-lock countdown...")
+            start_time = time()
+
+            while time() - start_time < 5:
+                if GPIO.input(REED_SWITCH_PIN) != GPIO.LOW:
+                    print("Door opened again. Auto-lock canceled.")
+                    break
+                sleep(0.5)
+            else:
+                print("Door remained closed for 5 seconds. Locking door...")
+                lock_door()
+                return
+        sleep(0.2)
+
+
 def load_face_images():
     face_images = []
     for sub_user in user.get('sub_users', []):
@@ -126,17 +146,14 @@ def load_face_images():
                 response.raise_for_status()
                 image = Image.open(BytesIO(response.content)).convert('RGB')
                 image_np = np.array(image)
-
                 face_locations = face_recognition.face_locations(image_np)
                 face_encs = face_recognition.face_encodings(image_np, face_locations)
                 if face_encs:
                     known_face_encodings.append(face_encs[0])
                 else:
                     print(f"No face encoding found in {photo_filename} for {name}")
-
                 image_gray = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)
                 image_gray = cv2.resize(image_gray, (200, 200))
-
                 face_images.append(image_gray)
                 known_face_names.append(name)
                 print(f"Loaded face for {name}")
@@ -195,9 +212,9 @@ print("System ready. Waiting for motion to begin recognition...")
 try:
     while True:
         if GPIO.input(PIR_PIN):
+            GPIO.output(ORANGE_LED_PIN, GPIO.HIGH)
             print("Motion detected. Starting authentication process...")
             play_sound("/home/raspberry/BeginningFacialRecognition.wav")
-
             face_attempts = 0
             authenticated = False
 
@@ -207,7 +224,6 @@ try:
                 small = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
                 rgb_small = cv2.cvtColor(small, cv2.COLOR_BGR2RGB)
                 cv2.imshow("Face Recognition", frame)
-
                 face_locations = face_recognition.face_locations(rgb_small)
                 face_encodings = face_recognition.face_encodings(rgb_small, face_locations)
 
@@ -232,8 +248,8 @@ try:
                                 best_dist, best_match = dist, proj_name
 
                         if best_match == name:
-                            print(f"Eigenfaces match. Proceeding with voice verification...")
-                            GPIO.output(YELLOW_LED_PIN, GPIO.HIGH)  #turns on yellow LED to signal user for voice recognition
+                            print("Eigenfaces match. Proceeding with voice verification...")
+                            GPIO.output(YELLOW_LED_PIN, GPIO.HIGH)
                             play_sound("/home/raspberry/BeginVocalRecognition.wav")
                             voice_attempts = 0
 
@@ -248,13 +264,12 @@ try:
                                         audio_segment = AudioSegment.from_file(raw_mp3_path)
                                         audio_segment = audio_segment.set_channels(1).set_frame_rate(16000)
                                         audio_segment.export("temp_voice.wav", format="wav")
-
                                         live_mfcc = extract_mfcc("temp_voice.wav")
                                         stored_mfcc = voice_profiles.get(name)
                                         if stored_mfcc is not None and live_mfcc is not None:
                                             similarity = 1 - cosine(stored_mfcc, live_mfcc)
                                             print(f"Voice similarity score: {similarity:.2f}")
-                                            if similarity > 0.7:
+                                            if similarity > 0.55:
                                                 print(f"{name} authenticated.")
                                                 authenticated = True
                                                 break
@@ -266,8 +281,8 @@ try:
                                     except Exception as e:
                                         print("Voice error:", e)
                                 voice_attempts += 1
-                                
-                        GPIO.output(YELLOW_LED_PIN, GPIO.LOW) #turns off yellow led
+                            GPIO.output(YELLOW_LED_PIN, GPIO.LOW)
+                            
 
                 face_attempts += 1
                 if not authenticated:
@@ -284,13 +299,20 @@ try:
                 GPIO.output(GREEN_LED_PIN, GPIO.HIGH)
                 GPIO.output(RED_LED_PIN, GPIO.LOW)
                 play_sound("/home/raspberry/UnlockingDoor.wav")
-                GPIO.output(MOTOR_IN1, GPIO.HIGH)  # Turn on motor to unlock
+                GPIO.output(MOTOR_IN1, GPIO.HIGH)
                 GPIO.output(MOTOR_IN2, GPIO.LOW)
-
-                sleep(5)  # Keep lock open for 5 seconds
-                GPIO.output(MOTOR_IN1, GPIO.LOW)  # lock again
+                sleep(2)
+                GPIO.output(MOTOR_IN1, GPIO.LOW)
                 GPIO.output(MOTOR_IN2, GPIO.LOW)
                 GPIO.output(GREEN_LED_PIN, GPIO.LOW)
+
+                monitor_reed_for_autolock()
+
+                # Fix: Wait for motion to stop before restarting
+                print("Waiting for motion to stop...")
+                while GPIO.input(PIR_PIN) == GPIO.HIGH:
+                    sleep(0.5)
+
             else:
                 print("Authentication failed. Waiting for next motion event...")
                 play_sound("/home/raspberry/NotAMatch.wav")
@@ -298,7 +320,9 @@ try:
                 sleep(2)
                 GPIO.output(RED_LED_PIN, GPIO.LOW)
         else:
-            sleep(1)  # Polling interval for PIR sensor
+            GPIO.output(ORANGE_LED_PIN, GPIO.LOW)
+            sleep(1)
+            
 
 except KeyboardInterrupt:
     print("Exiting program...")
